@@ -69,7 +69,7 @@ def interact_with_assistant(user_query):
 
 # Streamlit UI components
 
-st.title("CV Analysis Assistant")
+st.title("XHC DSS")
 
 # Initialize session state variables if they don't exist
 if "file_id" not in st.session_state:
