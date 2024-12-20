@@ -10,8 +10,10 @@ assistant_id = st.secrets["AssistantID"]
 # Function to generate a response from the OpenAI Assistant API
 def get_openai_response(messages):
     try:
-        # Create a thread for the user interaction
-        thread = client.beta.threads.create(assistant_id=assistant_id)
+        # Create a new thread for the user interaction, passing the assistant_id at creation
+        thread = client.beta.threads.create(
+            assistant_id=assistant_id  # This is where we correctly pass the assistant_id
+        )
 
         # Send the user's message to the thread
         message = client.beta.threads.messages.create(
@@ -20,10 +22,10 @@ def get_openai_response(messages):
             content=messages[-1]["content"],  # The most recent user message
         )
 
-        # Run the assistant to get a response
+        # Create a run to process the user's message with the assistant
         run = client.beta.threads.runs.create(
             thread_id=thread.id,
-            assistant_id=assistant_id,
+            assistant_id=assistant_id  # Ensure the assistant_id is included here as well
         )
 
         # Periodically check for the run status
@@ -38,7 +40,7 @@ def get_openai_response(messages):
             thread_id=thread.id
         )
 
-        # Find the assistant's response in the messages
+        # Find and return the assistant's response
         for msg in all_messages.data:
             if msg["role"] == "assistant":
                 return msg["content"]
