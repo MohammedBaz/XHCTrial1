@@ -2,8 +2,8 @@ from openai import OpenAI
 import streamlit as st
 
 # Initialize the OpenAI client with API key from secrets
-client = OpenAI(st.secrets["OpenAIKey"]) 
 
+client = OpenAI(api_key=st.secrets["OpenAIKey"])
 def interact_with_assistant(user_query):
     # 1. Create a thread
     thread = client.beta.threads.create()
