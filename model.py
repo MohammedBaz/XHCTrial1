@@ -4,23 +4,47 @@ import streamlit as st
 # Initialize the OpenAI client with API key from secrets
 client = OpenAI(api_key=st.secrets["OpenAIKey"])
 
-# Function to generate a response from a pre-configured Assistant
-from openai import OpenAI
-import streamlit as st
+# Use the assistant ID from your OpenAI dashboard
+assistant_id = st.secrets["AssistantID"]
 
-# Initialize the OpenAI client with API key from secrets
-client = OpenAI(api_key=st.secrets["OpenAIKey"])
-
-# Function to generate a response from the OpenAI Assistant
-def get_openai_response(messages, assistant_id):
+# Function to generate a response from the OpenAI Assistant API
+def get_openai_response(messages):
     try:
-        # Call the assistant's chat endpoint
-        response = client.assistants.chat.create(
-            assistant_id=assistant_id,  # Assistant ID from secrets
-            messages=messages           # Messages from the user and assistant
+        # Create a thread for the user interaction
+        thread = client.beta.threads.create(assistant_id=assistant_id)
+
+        # Send the user's message to the thread
+        message = client.beta.threads.messages.create(
+            thread_id=thread.id,
+            role="user",
+            content=messages[-1]["content"],  # The most recent user message
         )
-        return response.choices[0].message  # Return the assistant's response
+
+        # Run the assistant to get a response
+        run = client.beta.threads.runs.create(
+            thread_id=thread.id,
+            assistant_id=assistant_id,
+        )
+
+        # Periodically check for the run status
+        while run.status != "completed":
+            run = client.beta.threads.runs.retrieve(
+                thread_id=thread.id,
+                run_id=run.id
+            )
+
+        # Retrieve the assistant's response from the thread
+        all_messages = client.beta.threads.messages.list(
+            thread_id=thread.id
+        )
+
+        # Find the assistant's response in the messages
+        for msg in all_messages.data:
+            if msg["role"] == "assistant":
+                return msg["content"]
+        
+        return "No response from assistant."
+
     except Exception as e:
         st.error(f"Error with OpenAI Assistant API: {e}")
         return None
-
