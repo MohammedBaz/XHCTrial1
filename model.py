@@ -2,7 +2,7 @@ from openai import OpenAI
 import streamlit as st
 
 # Initialize the OpenAI client with API key from secrets
-client = OpenAI(api_key=st.secrets["OpenAIKey"]["api_key"])
+client = OpenAI(api_key=st.secrets["OpenAIKey"])
 
 # Function to generate a response from the OpenAI API
 def get_openai_response(messages, model="gpt-4o-mini"):
