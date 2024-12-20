@@ -1,6 +1,7 @@
 import streamlit as st
 from openai import OpenAI
 import time
+import re
 
 # Initialize the OpenAI client
 client = OpenAI(api_key=st.secrets["OpenAIKey"])
@@ -50,11 +51,16 @@ def interact_with_assistant(user_query):
             for i in range(last_message_index, len(messages.data)):
                 msg = messages.data[i]
                 if msg.run_id == run.id and (msg.created_at > run.created_at):
-                  with st.chat_message(msg.role):
-                      if msg.role == "assistant" and msg.content and len(msg.content) > 0:
-                          st.markdown(msg.content[0].text.value)
-                      else:
-                          st.markdown("Assistant did not provide a text response.")
+                    with st.chat_message(msg.role):
+                        if msg.role == "assistant" and msg.content and len(msg.content) > 0:
+                            response_text = msg.content[0].text.value
+
+                            # Remove the citation using regular expression
+                            cleaned_response = re.sub(r"【.*?】", "", response_text).strip()
+
+                            st.markdown(cleaned_response)
+                        else:
+                            st.markdown("Assistant did not provide a text response.")
 
             # Update last message index
             st.session_state.last_message_index = len(messages.data)
