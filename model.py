@@ -2,9 +2,8 @@ from openai import OpenAI
 import streamlit as st
 
 # Initialize the OpenAI client with API key from secrets
-#openai.api_key = st.secrets["OpenAIKey"]
-ASSISTANT_ID=st.secrets["AssistantID"]
 client = OpenAI(st.secrets["OpenAIKey"]) 
+
 def interact_with_assistant(user_query):
     # 1. Create a thread
     thread = client.beta.threads.create()
@@ -19,7 +18,7 @@ def interact_with_assistant(user_query):
     # 3. Run the assistant
     run = client.beta.threads.runs.create(
         thread_id=thread.id,
-        assistant_id=ASSISTANT_ID,
+        assistant_id=st.secrets["AssistantID"],
     )
 
     # 4. Wait for the run to complete (you might want to add more robust polling/waiting logic)
