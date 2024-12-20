@@ -1,6 +1,5 @@
 import streamlit as st
-from model import get_openai_response
-
+from model import interact_with_assistant
 # Streamlit app layout
 st.title("ChatGPT-like Assistant")
 
