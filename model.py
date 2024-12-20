@@ -23,11 +23,17 @@ def interact_with_assistant(user_query):
 
     # 4. Wait for the run to complete (you might want to add more robust polling/waiting logic)
     while run.status != "completed":
-        run = client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
+        run = client.beta.threads.runs.retrieve(
+            thread_id=thread_id,
+            run_id=run.id
+        )
         time.sleep(1)
 
-    # 5. Get the assistant's response
-    messages = client.beta.threads.messages.list(thread_id=thread.id)
-    assistant_response = messages.data[0].content[0].text.value  # Get the last message (assistant's response)
+        # Retrieve and display messages so far
+        messages = client.beta.threads.messages.list(thread_id=thread_id, order="asc")
+        for msg in messages:
+            if msg.run_id == run.id or msg.created_at > run.created_at:  # Only show new messages
+                with st.chat_message(msg.role):
+                    st.markdown(msg.content[0].text.value)
 
-    return assistant_response
+    return run
