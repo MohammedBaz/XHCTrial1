@@ -21,7 +21,7 @@ if user_input := st.chat_input("Ask me something:"):
         st.markdown(user_input)
 
     # Fetch the response from OpenAI
-    assistant_message = get_openai_response(st.session_state.messages)
+    assistant_message = interact_with_assistant(st.session_state.messages)
     
     if assistant_message:  # Check if a response is received
         # Append the assistant's response to the chat history
