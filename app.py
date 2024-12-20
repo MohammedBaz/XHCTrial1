@@ -39,10 +39,16 @@ def interact_with_assistant(user_query):
 
         # Retrieve and display messages so far
         messages = client.beta.threads.messages.list(thread_id=thread_id, order="asc")
+        print(messages) # Print the messages for debugging
+
         for msg in messages:
-            if msg.run_id == run.id or msg.created_at > run.created_at:  # Only show new messages
+            if msg.run_id == run.id or msg.created_at > run.created_at:
                 with st.chat_message(msg.role):
-                    st.markdown(msg.content[0].text.value)
+                    # Handle cases where content might be empty
+                    if msg.role == "assistant" and msg.content and len(msg.content) > 0:
+                        st.markdown(msg.content[0].text.value)
+                    else:
+                        st.markdown("Assistant did not provide a text response.")
 
     return run
 
