@@ -37,18 +37,27 @@ def interact_with_assistant(user_query):
         )
         time.sleep(1)
 
-        # Retrieve and display messages so far
-        messages = client.beta.threads.messages.list(thread_id=thread_id, order="asc")
-        print(messages) # Print the messages for debugging
+        # Retrieve messages only after run completion
+        if run.status == "completed":
+            messages = client.beta.threads.messages.list(thread_id=thread_id, order="asc")
+            print(messages)
 
-        for msg in messages:
-            if msg.run_id == run.id or msg.created_at > run.created_at:
-                with st.chat_message(msg.role):
-                    # Handle cases where content might be empty
-                    if msg.role == "assistant" and msg.content and len(msg.content) > 0:
-                        st.markdown(msg.content[0].text.value)
-                    else:
-                        st.markdown("Assistant did not provide a text response.")
+            # Display only new messages since last interaction
+            last_message_index = 0
+            if "last_message_index" in st.session_state:
+                last_message_index = st.session_state.last_message_index
+
+            for i in range(last_message_index, len(messages.data)):
+                msg = messages.data[i]
+                if msg.run_id == run.id and (msg.created_at > run.created_at):
+                  with st.chat_message(msg.role):
+                      if msg.role == "assistant" and msg.content and len(msg.content) > 0:
+                          st.markdown(msg.content[0].text.value)
+                      else:
+                          st.markdown("Assistant did not provide a text response.")
+
+            # Update last message index
+            st.session_state.last_message_index = len(messages.data)
 
     return run
 
@@ -61,6 +70,8 @@ if "file_id" not in st.session_state:
     st.session_state.file_id = None
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "last_message_index" not in st.session_state:
+    st.session_state.last_message_index = 0
 
 # File uploader
 uploaded_file = st.file_uploader("Upload your CV", type=["pdf", "txt", "docx"])  # Add other supported formats
@@ -89,5 +100,5 @@ if user_query:
     with st.spinner("Thinking..."):
         run = interact_with_assistant(user_query)
 
-    # (Optional) Store the run ID for later retrieval, if needed
-    # st.session_state.run_id = run.id
+# (Optional) Store the run ID for later retrieval, if needed
+# st.session_state.run_id = run.id
