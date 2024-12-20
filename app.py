@@ -2,7 +2,7 @@ import streamlit as st
 from model import get_openai_response
 
 # Streamlit app layout
-st.title("ChatGPT-like Clone")
+st.title("Travel Planning Assistant")
 
 # Initialize session state
 if "messages" not in st.session_state:
@@ -20,15 +20,14 @@ if user_input := st.chat_input("Ask me something:"):
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    # Fetch the response from OpenAI Assistant
-    assistant_id = st.secrets["AssistantID"]  # Read assistant ID from secrets
-    assistant_message = get_openai_response(st.session_state.messages, assistant_id)
-
+    # Fetch the response from OpenAI (assistant in the dashboard)
+    assistant_message = get_openai_response(st.session_state.messages)
     if assistant_message:  # Check if a response is received
         # Append the assistant's response to session state
-        st.session_state.messages.append({"role": "assistant", "content": assistant_message.content})
+        st.session_state.messages.append({"role": "assistant", "content": assistant_message["content"]})
+
         # Display the assistant's response
         with st.chat_message("assistant"):
-            st.markdown(assistant_message.content)
+            st.markdown(assistant_message["content"])
     else:
-        st.error("Failed to fetch response from OpenAI Assistant.")
+        st.error("Failed to fetch response from OpenAI.")
