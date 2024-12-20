@@ -1,29 +1,30 @@
 import streamlit as st
-from model import create_thread_with_message
+from model import get_openai_response
 
 # Streamlit app layout
-st.title("Travel Assistant Chat")
+st.title("ChatGPT-like Assistant")
 
-# Initialize session state
+# Initialize session state to keep track of the chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []  # Stores the chat history
 
-# Display previous messages
+# Display previous messages (user and assistant)
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# User input for a new message
-if user_input := st.chat_input("Ask me something about your travel plans:"):
-    # Append user's message to session state
+# Get user input for a new message
+if user_input := st.chat_input("Ask me something:"):
+    # Append the user's message to the session state
     st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
         st.markdown(user_input)
 
     # Fetch the response from OpenAI
-    assistant_message = create_thread_with_message(st.session_state.messages)
+    assistant_message = get_openai_response(st.session_state.messages)
+    
     if assistant_message:  # Check if a response is received
-        # Append the assistant's message to session state
+        # Append the assistant's response to the chat history
         st.session_state.messages.append({"role": "assistant", "content": assistant_message})
 
         # Display the assistant's response
