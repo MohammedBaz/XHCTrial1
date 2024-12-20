@@ -48,7 +48,3 @@ if user_query:
         with st.chat_message("assistant"):
             st.markdown(response)
         st.session_state.messages.append(("assistant", response))
-
-# Reset session button
-if st.button("Reset Session"):
-    st.session_state.clear()
