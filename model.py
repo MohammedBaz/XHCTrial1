@@ -1,27 +1,34 @@
 from openai import OpenAI
 import streamlit as st
 import time
-# Initialize the OpenAI client with API key from secrets
 
+# Initialize the OpenAI client with API key from Streamlit secrets
 client = OpenAI(api_key=st.secrets["OpenAIKey"])
+
+# Function to interact with the OpenAI Assistant
 def interact_with_assistant(user_query):
-    # 1. Create a thread
-    thread = client.beta.threads.create()
+    # 1. Create a thread (or retrieve an existing thread ID from session state)
+    if "thread_id" not in st.session_state:
+        thread = client.beta.threads.create()
+        st.session_state.thread_id = thread.id
+    else:
+        thread_id = st.session_state.thread_id
 
     # 2. Add a message to the thread
     client.beta.threads.messages.create(
-        thread_id=thread.id,
+        thread_id=thread_id,
         role="user",
         content=user_query,
+        # Add file IDs if needed: file_ids=[st.session_state.file_id]
     )
 
     # 3. Run the assistant
     run = client.beta.threads.runs.create(
-        thread_id=thread.id,
-        assistant_id=st.secrets["AssistantID"]
+        thread_id=thread_id,
+        assistant_id=st.secrets["AssistantID"],
     )
 
-    # 4. Wait for the run to complete (you might want to add more robust polling/waiting logic)
+    # 4. Periodically check for the run to complete and display messages
     while run.status != "completed":
         run = client.beta.threads.runs.retrieve(
             thread_id=thread_id,
@@ -37,3 +44,33 @@ def interact_with_assistant(user_query):
                     st.markdown(msg.content[0].text.value)
 
     return run
+
+# Streamlit UI components
+
+st.title("CV Analysis Assistant")
+
+# Initialize or retrieve the file ID from session state (if you're using file uploads)
+if "file_id" not in st.session_state:
+    st.session_state.file_id = None
+
+# File uploader (if needed)
+uploaded_file = st.file_uploader("Upload your CV", type=["pdf", "txt", "docx"]) # Add other supported formats if needed
+if uploaded_file is not None:
+    # Upload the file to OpenAI and store the file ID in session state
+    file = client.files.create(file=uploaded_file, purpose="assistants")
+    st.session_state.file_id = file.id
+
+# Chat input
+user_query = st.chat_input("What do you want to ask about the CV?")
+
+# Handle user input
+if user_query:
+    with st.chat_message("user"):
+        st.markdown(user_query)
+
+    # Interact with the assistant
+    with st.spinner("Thinking..."):
+        run = interact_with_assistant(user_query)
+
+    # (Optional) Store the run ID for later retrieval if needed
+    # st.session_state.run_id = run.id
